@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Rooster – Schoonmaakteam</title>
+<style>
+:root{
+  --ink:#0F172A;--ink-2:#475569;--ink-3:#94A3B8;
+  --surface:#F8FAFC;--card:#FFFFFF;--line:#E2E8F0;
+  --accent:#0EA5E9;--accent-d:#0284C7;
+  --fixed:#EF4444;--flex:#3B82F6;--key:#8B5CF6;--done:#10B981;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--surface);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{display:flex;flex-direction:column;height:100dvh}
+.topbar{background:var(--ink);color:#fff;padding:14px 18px 12px;
+  padding-top:calc(14px + env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:20;flex-shrink:0}
+.topbar h1{font-size:16px;font-weight:700}
+.topbar p{font-size:11px;opacity:.5;margin-top:1px}
+.week-pill{display:flex;gap:2px;background:rgba(255,255,255,.1);border-radius:99px;padding:3px}
+.week-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;
+  border:none;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;transition:all .15s}
+.week-btn.active{background:#fff;color:var(--ink)}
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;
+  padding:14px 14px calc(80px + env(safe-area-inset-bottom))}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);
+  border-top:1px solid var(--line);display:flex;
+  padding-bottom:env(safe-area-inset-bottom);z-index:20}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:10px 4px;border:none;background:transparent;
+  cursor:pointer;color:var(--ink-3);font-size:10px;font-weight:600;transition:color .15s}
+.nav-btn.active{color:var(--accent)}
+.nav-btn svg{width:22px;height:22px;stroke-width:1.8}
+/* loading */
+.loading{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;height:60vh;gap:12px;color:var(--ink-3)}
+.spinner{width:36px;height:36px;border:3px solid var(--line);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* person chips */
+.person-scroller{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;
+  scrollbar-width:none;margin-bottom:4px}
+.person-scroller::-webkit-scrollbar{display:none}
+.person-chip{flex-shrink:0;padding:7px 14px;border-radius:99px;
+  font-size:13px;font-weight:600;border:2px solid transparent;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+  background:var(--card);color:var(--ink-2);border-color:var(--line)}
+.person-chip.active{border-color:currentColor}
+.section-label{font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);margin:16px 0 8px}
+/* day cards */
+.day-card{background:var(--card);border-radius:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+  margin-bottom:10px;overflow:hidden}
+.day-head{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 15px;cursor:pointer;user-select:none;
+  border-bottom:1px solid var(--line)}
+.day-head.today-head{background:linear-gradient(135deg,#0F172A,#1E3A5F)}
+.day-head.today-head .day-name,.day-head.today-head .day-date{color:#fff}
+.day-name{font-size:15px;font-weight:700}
+.day-date{font-size:12px;color:var(--ink-3);margin-top:1px}
+.day-hrs{font-size:13px;font-weight:700;padding:4px 11px;border-radius:99px;
+  background:var(--accent);color:#fff}
+.day-hrs.zero{background:var(--line);color:var(--ink-3);font-weight:500}
+.day-hrs.today-hrs{background:#fff;color:var(--ink)}
+.chevron{font-size:10px;color:var(--ink-3);margin-left:6px;
+  transition:transform .2s;display:inline-block}
+.day-card.open .chevron{transform:rotate(180deg)}
+.day-body{display:none}
+.day-card.open .day-body{display:block}
+.shift{display:flex;align-items:flex-start;gap:11px;padding:12px 15px}
+.shift+.shift{border-top:1px solid var(--line)}
+.shift-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.shift-info{flex:1;min-width:0}
+.shift-loc{font-size:14px;font-weight:700}
+.shift-addr{font-size:11px;color:var(--ink-3);margin-top:2px}
+.shift-time{font-size:12px;font-weight:600;margin-top:3px}
+.t-fixed{color:#EF4444}.t-flex{color:#3B82F6}.t-key{color:#8B5CF6}.t-ask{color:#F59E0B}
+.shift-hrs{font-size:14px;font-weight:800;flex-shrink:0;padding-top:1px}
+.badge{display:inline-block;font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:99px;margin-left:5px;vertical-align:middle}
+.b-fixed{background:#FEE2E2;color:#EF4444}
+.b-key{background:#EDE9FE;color:#8B5CF6}
+.b-ask{background:#FEF3C7;color:#F59E0B}
+.travel{display:flex;align-items:center;gap:8px;
+  padding:4px 15px;font-size:11px;color:var(--ink-3)}
+.travel-line{flex:1;height:1px;
+  background:repeating-linear-gradient(90deg,var(--line) 0 5px,transparent 5px 9px)}
+.off{text-align:center;padding:14px;font-size:13px;color:var(--ink-3)}
+.day-total-bar{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 15px;background:var(--surface);border-top:1px solid var(--line);
+  font-size:12px;font-weight:600;color:var(--ink-2)}
+.day-total-bar span:last-child{font-size:15px;font-weight:800;color:#10B981}
+.week-summary{background:var(--ink);color:#fff;border-radius:14px;
+  padding:16px 18px;display:flex;justify-content:space-between;
+  align-items:center;margin-top:4px;margin-bottom:16px}
+.week-summary .label{font-size:12px;opacity:.6}
+.week-summary .total{font-size:26px;font-weight:800}
+/* team view */
+.team-day-block{margin-bottom:14px}
+.team-day-title{font-size:13px;font-weight:700;color:#fff;
+  background:var(--ink);border-radius:8px;padding:8px 13px;margin-bottom:6px}
+.team-row{display:flex;align-items:center;gap:10px;background:var(--card);
+  border-radius:8px;padding:10px 13px;margin-bottom:4px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.team-name{font-size:12px;font-weight:700;width:68px;flex-shrink:0}
+.team-shifts{flex:1;display:flex;flex-direction:column;gap:3px}
+.team-shift-item{font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:5px}
+.team-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.team-hrs{font-size:13px;font-weight:800;flex-shrink:0}
+.team-fixed-tag{font-size:9px;background:#EF4444;color:#fff;
+  border-radius:4px;padding:1px 5px;font-weight:700}
+/* edit */
+.edit-locked{text-align:center;padding:40px 20px}
+.edit-locked h2{font-size:18px;font-weight:700;margin-bottom:8px}
+.edit-locked p{font-size:14px;color:var(--ink-2);margin-bottom:20px;line-height:1.5}
+.pin-input{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.pin-digit{width:52px;height:60px;border-radius:8px;border:2px solid var(--line);
+  font-size:28px;font-weight:700;text-align:center;background:var(--card);
+  color:var(--ink);outline:none}
+.pin-digit:focus{border-color:var(--accent)}
+.btn{display:block;width:100%;padding:14px;border-radius:14px;
+  font-size:15px;font-weight:700;border:none;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-danger{background:#EF4444;color:#fff;margin-top:8px}
+.form-section{background:var(--card);border-radius:14px;padding:16px;
+  margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06)}
+.form-section h3{font-size:14px;font-weight:700;margin-bottom:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
+.field select,.field input{width:100%;padding:11px 13px;border-radius:8px;
+  border:1.5px solid var(--line);font-size:14px;background:var(--surface);
+  color:var(--ink);outline:none;-webkit-appearance:none;appearance:none}
+.field select:focus,.field input:focus{border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
+.toggle{width:44px;height:26px;border-radius:99px;position:relative;
+  background:var(--line);border:none;cursor:pointer;transition:background .2s}
+.toggle.on{background:#EF4444}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+.shift-edit-row{display:flex;align-items:center;gap:8px;background:var(--surface);
+  border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.shift-edit-info{flex:1;min-width:0}
+.shift-edit-name{font-size:13px;font-weight:700}
+.shift-edit-detail{font-size:11px;color:var(--ink-3);margin-top:1px}
+.del-btn{width:30px;height:30px;border-radius:50%;border:none;
+  background:#EF4444;color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.info-box{background:var(--card);border-radius:14px;padding:16px;
+  margin-bottom:12px;border-left:4px solid var(--accent);
+  box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.info-box h3{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.info-box p{font-size:13px;color:var(--ink-2);line-height:1.6;margin-bottom:6px}
+.info-box code{background:var(--surface);padding:2px 6px;border-radius:4px;
+  font-size:11px;color:var(--ink);word-break:break-all}
+.toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom) + 10px);
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:99px;
+  font-size:13px;font-weight:600;opacity:0;transition:all .25s;
+  pointer-events:none;white-space:nowrap;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="topbar">
+  <div>
+    <h1>🧹 Rooster</h1>
+    <p>Schoonmaakteam</p>
+  </div>
+  <div class="week-pill">
+    <button class="week-btn" onclick="setWeek(2)">Wk 2</button>
+    <button class="week-btn active" onclick="setWeek(3)">Wk 3</button>
+  </div>
+</div>
+<div class="scroll" id="scroll-area">
+  <div class="loading"><div class="spinner"></div><span>Rooster laden...</span></div>
+</div>
+<nav class="bottomnav">
+  <button class="nav-btn active" id="nav-my" onclick="showTab('my')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Mijn dag
+  </button>
+  <button class="nav-btn" id="nav-team" onclick="showTab('team')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3"/><circle cx="15" cy="8" r="3"/><path d="M2 20c0-3 2.7-5 7-5M22 20c0-3-2.7-5-7-5M9 14.5C11 14.5 13 16 13 20M15 14.5C13 14.5 11 16 11 20"/></svg>
+    Team
+  </button>
+  <button class="nav-btn" id="nav-edit" onclick="showTab('edit')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Bewerken
+  </button>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvAXvTG68cvPsrxhnqquUaDXhx9rqyWgKIaiEsrjsF-w8nnthkmA1EQThv2U69aYAoynzskxjNX9vJ/pub?gid=0&single=true&output=csv';
+const EDIT_PIN  = '1234'; // Soraya changes this
+
+const PERSON_COLOR = {
+  Julia:'#0EA5E9',merie:'#10B981',sylvia:'#8B5CF6',shayenn:'#F59E0B',
+  gaby:'#059669',aneta:'#EF4444',Maissa:'#14B8A6',mahmoed:'#F97316',
+  destany:'#EC4899',default:'#64748B'
+};
+const PERSON_BG = {
+  Julia:'#E0F2FE',merie:'#D1FAE5',sylvia:'#EDE9FE',shayenn:'#FEF3C7',
+  gaby:'#ECFDF5',aneta:'#FEF2F2',Maissa:'#F0FDFA',mahmoed:'#FFF7ED',
+  destany:'#FDF2F8',default:'#F1F5F9'
+};
+const LOC_ADDR = {
+  'SAMENWERKINGSVB':'Copernicuslaan 30, Ede',
+  'KETENSTANDAARD':'Horaplantsoen 16, Ede',
+  'MOTOVEDA':'Galvanistraat 55, Ede',
+  'BISOTON':'Curiestraat 6, Ede',
+  'RIONED':'Horaplantsoen 12b, Ede',
+  'STEADFAST':'Edeseweg 101, Bennekom',
+  'HOTEL LUNTEREN':'De Werelt, Westhofflaan 2, Lunteren',
+  'GEMEENTE EDE':'Horapark 4, Ede',
+  'VAN PUTTEN APELD':'Apeldoorn',
+  'SOLIDEZ':'Olympiaplein 26, Ede',
+};
+const WEEKS = {
+  2:['2026-06-22','2026-06-23','2026-06-24','2026-06-25','2026-06-26','2026-06-27'],
+  3:['2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03','2026-07-04']
+};
+const DAY_FULL  = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const DAY_SHORT = ['zo','ma','di','wo','do','vr','za'];
+const MONTH_NL  = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let SHIFTS = [];
+let currentTab = 'my';
+let currentWeek = 3;
+let selectedPerson = 'Julia';
+let editUnlocked = false;
+let allPersons = [];
+
+// ── CSV FETCH ─────────────────────────────────────────────────────────────
+async function loadSheet() {
+  try {
+    const res = await fetch(SHEET_CSV + '&t=' + Date.now());
+    const txt = await res.text();
+    SHIFTS = parseCSV(txt);
+    allPersons = [...new Set(SHIFTS.map(s => s.person))].sort();
+    // Auto-detect current week
+    const today = new Date().toISOString().slice(0,10);
+    if (WEEKS[2].includes(today)) currentWeek = 2;
+    document.querySelectorAll('.week-btn').forEach((b,i) =>
+      b.classList.toggle('active', [2,3][i] === currentWeek));
+    render();
+  } catch(e) {
+    document.getElementById('scroll-area').innerHTML =
+      `<div class="loading"><span>⚠️ Kon rooster niet laden.<br>Controleer je verbinding.</span></div>`;
+  }
+}
+
+function parseCSV(txt) {
+  const lines = txt.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  return lines.slice(1).map(line => {
+    // handle commas inside quoted fields
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = cols[i] || '');
+    return {
+      person:   obj.person   || '',
+      date:     obj.date     || '',
+      loc:      obj.location || '',
+      hrs:      parseFloat(obj.hours) || 0,
+      time:     obj.time     || '',
+      type:     obj.type     || 'flex',
+    };
+  }).filter(s => s.person && s.date);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function fmtDate(d) {
+  const dt = new Date(d + 'T00:00:00');
+  return `${DAY_SHORT[dt.getDay()]} ${dt.getDate()} ${MONTH_NL[dt.getMonth()]}`;
+}
+function isToday(d) {
+  const t = new Date(), dt = new Date(d + 'T00:00:00');
+  return t.getFullYear()===dt.getFullYear()&&t.getMonth()===dt.getMonth()&&t.getDate()===dt.getDate();
+}
+function pColor(p) { return PERSON_COLOR[p] || PERSON_COLOR.default; }
+function pBg(p)    { return PERSON_BG[p]    || PERSON_BG.default; }
+function dotColor(type) {
+  return {fixed:'#EF4444',flex:'#3B82F6',key:'#8B5CF6',ask:'#F59E0B'}[type]||'#64748B';
+}
+function typeBadge(type) {
+  if (type==='fixed') return '<span class="badge b-fixed">🔴 VAST</span>';
+  if (type==='key')   return '<span class="badge b-key">🔑 SLEUTEL</span>';
+  if (type==='ask')   return '<span class="badge b-ask">❓ TBC</span>';
+  return '';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  const area = document.getElementById('scroll-area');
+  if (currentTab==='my')   area.innerHTML = renderMy();
+  if (currentTab==='team') area.innerHTML = renderTeam();
+  if (currentTab==='edit') area.innerHTML = renderEdit();
+  document.querySelectorAll('.day-head').forEach(h =>
+    h.addEventListener('click', () => h.closest('.day-card').classList.toggle('open')));
+}
+
+// ── MY VIEW ───────────────────────────────────────────────────────────────
+function renderMy() {
+  const dates = WEEKS[currentWeek];
+  const myShifts = SHIFTS.filter(s => s.person === selectedPerson);
+
+  let chips = '<div class="person-scroller">';
+  allPersons.forEach(p => {
+    const active = p === selectedPerson;
+    chips += `<div class="person-chip${active?' active':''}"
+      style="color:${pColor(p)};background:${active?pBg(p):'#fff'};
+             border-color:${active?pColor(p):'#E2E8F0'}"
+      onclick="selectPerson('${p}')">${p}</div>`;
+  });
+  chips += '</div>';
+
+  let weekTotal = 0;
+  let html = chips;
+  html += `<div class="section-label">Week ${currentWeek} · ${currentWeek===2?'22–27 jun':'29 jun – 4 jul'}</div>`;
+
+  dates.forEach(date => {
+    const dayShifts = myShifts.filter(s => s.date === date);
+    const dayTotal  = dayShifts.reduce((s,x) => s + x.hrs, 0);
+    weekTotal += dayTotal;
+    const today = isToday(date);
+    const dt    = new Date(date + 'T00:00:00');
+    const hasShifts = dayShifts.length > 0;
+
+    html += `<div class="day-card${(today||hasShifts)?' open':''}">
+      <div class="day-head${today?' today-head':''}">
+        <div>
+          <div class="day-name">${DAY_FULL[dt.getDay()]}</div>
+          <div class="day-date">${fmtDate(date)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${hasShifts
+            ? `<span class="day-hrs${today?' today-hrs':''}">${dayTotal}u</span>`
+            : `<span class="day-hrs zero">vrij</span>`}
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">`;
+
+    if (!hasShifts) {
+      html += `<div class="off">🌿 Vrije dag</div>`;
+    } else {
+      dayShifts.forEach((s,i) => {
+        if (i > 0) html += `<div class="travel"><div class="travel-line"></div>🚲<div class="travel-line"></div></div>`;
+        const addr = LOC_ADDR[s.loc] || '';
+        html += `<div class="shift">
+          <div class="shift-dot" style="background:${dotColor(s.type)}"></div>
+          <div class="shift-info">
+            <div class="shift-loc">${s.loc}${typeBadge(s.type)}</div>
+            ${addr?`<div class="shift-addr">📍 ${addr}</div>`:''}
+            <div class="shift-time t-${s.type}">⏰ ${s.time}</div>
+          </div>
+          <div class="shift-hrs" style="color:${dotColor(s.type)}">${s.hrs}u</div>
+        </div>`;
+      });
+      html += `<div class="day-total-bar"><span>Totaal</span><span>${dayTotal}u</span></div>`;
+    }
+    html += `</div></div>`;
+  });
+
+  html += `<div class="week-summary">
+    <div><div class="label">Week ${currentWeek} totaal</div></div>
+    <div class="total">${weekTotal}u</div>
+  </div>`;
+  return html;
+}
+
+// ── TEAM VIEW ─────────────────────────────────────────────────────────────
+function renderTeam() {
+  const dates = WEEKS[currentWeek];
+  let html = `<div class="section-label">Heel team · Week ${currentWeek}</div>`;
+
+  dates.forEach(date => {
+    const dayShifts = SHIFTS.filter(s => s.date === date);
+    if (!dayShifts.length) return;
+    const dt    = new Date(date + 'T00:00:00');
+    const today = isToday(date);
+
+    const byPerson = {};
+    dayShifts.forEach(s => {
+      if (!byPerson[s.person]) byPerson[s.person] = [];
+      byPerson[s.person].push(s);
+    });
+
+    html += `<div class="team-day-block">
+      <div class="team-day-title">${today?'📅 VANDAAG — ':''}${DAY_FULL[dt.getDay()]} ${dt.getDate()} ${MONTH_NL[dt.getMonth()]}</div>`;
+
+    Object.entries(byPerson).sort().forEach(([person, shifts]) => {
+      const total    = shifts.reduce((s,x) => s + x.hrs, 0);
+      const hasFixed = shifts.some(s => s.type === 'fixed');
+      html += `<div class="team-row">
+        <div class="team-name" style="color:${pColor(person)}">${person}</div>
+        <div class="team-shifts">`;
+      shifts.forEach(s => {
+        html += `<div class="team-shift-item">
+          <div class="team-dot" style="background:${dotColor(s.type)}"></div>
+          <span>${s.loc}</span>
+          ${s.type==='fixed'?'<span class="team-fixed-tag">VAST</span>':''}
+        </div>`;
+      });
+      html += `</div><div class="team-hrs" style="color:${pColor(person)}">${total}u</div></div>`;
+    });
+    html += `</div>`;
+  });
+  return html;
+}
+
+// ── EDIT VIEW ─────────────────────────────────────────────────────────────
+function renderEdit() {
+  if (!editUnlocked) {
+    return `<div class="edit-locked">
+      <h2>🔒 Bewerken</h2>
+      <p>Alleen voor Soraya.<br>Voer de PIN in om wijzigingen te maken.</p>
+      <div class="pin-input">
+        <input class="pin-digit" id="p1" type="password" maxlength="1" inputmode="numeric" oninput="movePIN(this,'p2')">
+        <input class="pin-digit" id="p2" type="password" maxlength="1" inputmode="numeric" oninput="movePIN(this,'p3')">
+        <input class="pin-digit" id="p3" type="password" maxlength="1" inputmode="numeric" oninput="movePIN(this,'p4')">
+        <input class="pin-digit" id="p4" type="password" maxlength="1" inputmode="numeric" oninput="checkPIN()">
+      </div>
+      <button class="btn btn-primary" onclick="checkPIN()">Inloggen</button>
+      <p style="font-size:11px;color:#94A3B8;margin-top:12px">PIN: 1234</p>
+    </div>`;
+  }
+
+  const dates = WEEKS[currentWeek];
+  const weekShifts = SHIFTS.filter(s => dates.includes(s.date))
+    .sort((a,b) => a.date.localeCompare(b.date) || a.person.localeCompare(b.person));
+
+  const allLocs = [...new Set(SHIFTS.map(s => s.loc)), ...Object.keys(LOC_ADDR)]
+    .filter((v,i,a) => a.indexOf(v)===i).sort();
+
+  let shiftList = weekShifts.map((s,i) => `
+    <div class="shift-edit-row">
+      <div class="shift-edit-info">
+        <div class="shift-edit-name" style="color:${pColor(s.person)}">${s.person} · ${fmtDate(s.date)}</div>
+        <div class="shift-edit-detail">${s.loc} · ${s.hrs}u · ${s.time}</div>
+      </div>
+      <button class="del-btn" onclick="deleteShift(${SHIFTS.indexOf(s)})">×</button>
+    </div>`).join('') || '<p style="color:#94A3B8;font-size:13px">Geen diensten</p>';
+
+  const personOpts = allPersons.map(p => `<option>${p}</option>`).join('');
+  const dateOpts   = dates.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
+  const locOpts    = allLocs.map(l => `<option>${l}</option>`).join('');
+
+  return `
+    <div class="info-box">
+      <h3>📊 Hoe werkt bewerken?</h3>
+      <p>Diensten toevoegen of verwijderen doe je hier. Maar voor <strong>permanente wijzigingen</strong> pas je het Google Sheet aan — dan ziet iedereen het na een refresh.</p>
+      <p>Sheet link: <code>docs.google.com/spreadsheets/d/1MFStgmt...</code></p>
+    </div>
+    <div class="form-section">
+      <h3>➕ Dienst toevoegen</h3>
+      <div class="field"><label>Persoon</label><select id="f-person">${personOpts}</select></div>
+      <div class="field"><label>Datum</label><select id="f-date">${dateOpts}</select></div>
+      <div class="field"><label>Locatie</label><select id="f-loc">${locOpts}</select></div>
+      <div class="row2">
+        <div class="field"><label>Uren</label><input id="f-hrs" type="number" value="2" min="0.5" max="12" step="0.5"></div>
+        <div class="field"><label>Tijd</label><input id="f-time" type="text" value="08:00-10:00"></div>
+      </div>
+      <div class="toggle-row">
+        <span style="font-size:14px;font-weight:600">🔴 Vaste tijd</span>
+        <button class="toggle" id="f-fixed-toggle" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <button class="btn btn-primary" onclick="addShift()">Toevoegen</button>
+    </div>
+    <div class="form-section">
+      <h3>📋 Diensten Week ${currentWeek} (${weekShifts.length})</h3>
+      ${shiftList}
+    </div>
+    <button class="btn btn-danger" onclick="editUnlocked=false;render()">🔒 Uitloggen</button>`;
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + tab).classList.add('active');
+  render();
+  document.getElementById('scroll-area').scrollTop = 0;
+}
+function setWeek(w) {
+  currentWeek = w;
+  document.querySelectorAll('.week-btn').forEach((b,i) =>
+    b.classList.toggle('active', [2,3][i] === w));
+  render();
+}
+function selectPerson(p) { selectedPerson = p; render(); }
+function movePIN(el, nextId) { if (el.value.length===1) document.getElementById(nextId)?.focus(); }
+function checkPIN() {
+  const pin = ['p1','p2','p3','p4'].map(id => document.getElementById(id)?.value||'').join('');
+  if (pin === EDIT_PIN) { editUnlocked = true; showToast('✅ Welkom Soraya!'); render(); }
+  else if (pin.length === 4) {
+    showToast('❌ Verkeerde PIN');
+    ['p1','p2','p3','p4'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('p1')?.focus();
+  }
+}
+function addShift() {
+  const person = document.getElementById('f-person').value;
+  const date   = document.getElementById('f-date').value;
+  const loc    = document.getElementById('f-loc').value;
+  const hrs    = parseFloat(document.getElementById('f-hrs').value);
+  const time   = document.getElementById('f-time').value;
+  const fixed  = document.getElementById('f-fixed-toggle').classList.contains('on');
+  if (!person||!date||!loc||!hrs) { showToast('Vul alle velden in'); return; }
+  SHIFTS.push({person,date,loc,hrs,time,type:fixed?'fixed':'flex'});
+  showToast(`✅ ${person} · ${loc} toegevoegd`);
+  render();
+}
+function deleteShift(idx) {
+  const s = SHIFTS[idx];
+  if (!s) return;
+  if (!confirm(`Verwijder ${s.person} · ${s.loc} op ${fmtDate(s.date)}?`)) return;
+  SHIFTS.splice(idx, 1);
+  showToast('🗑 Verwijderd');
+  render();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+loadSheet();
+</script>
+</body>
+</html>
