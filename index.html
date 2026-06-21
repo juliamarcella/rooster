@@ -21,9 +21,13 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
   position:sticky;top:0;z-index:20;flex-shrink:0}
 .topbar h1{font-size:16px;font-weight:700}
 .topbar p{font-size:11px;opacity:.5;margin-top:1px}
-.week-pill{display:flex;gap:2px;background:rgba(255,255,255,.1);border-radius:99px;padding:3px}
-.week-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;
-  border:none;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;transition:all .15s}
+.week-pill{display:flex;gap:2px;background:rgba(255,255,255,.1);
+  border-radius:99px;padding:3px;overflow-x:auto;max-width:200px;
+  scrollbar-width:none}
+.week-pill::-webkit-scrollbar{display:none}
+.week-btn{flex-shrink:0;font-size:11px;font-weight:600;padding:4px 10px;
+  border-radius:99px;border:none;background:transparent;
+  color:rgba(255,255,255,.6);cursor:pointer;transition:all .15s;white-space:nowrap}
 .week-btn.active{background:#fff;color:var(--ink)}
 .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;
   padding:14px 14px calc(80px + env(safe-area-inset-bottom))}
@@ -35,24 +39,21 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
   cursor:pointer;color:var(--ink-3);font-size:10px;font-weight:600;transition:color .15s}
 .nav-btn.active{color:var(--accent)}
 .nav-btn svg{width:22px;height:22px;stroke-width:1.8}
-/* loading */
 .loading{display:flex;flex-direction:column;align-items:center;
   justify-content:center;height:60vh;gap:12px;color:var(--ink-3)}
 .spinner{width:36px;height:36px;border:3px solid var(--line);
   border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* person chips */
 .person-scroller{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;
   scrollbar-width:none;margin-bottom:4px}
 .person-scroller::-webkit-scrollbar{display:none}
 .person-chip{flex-shrink:0;padding:7px 14px;border-radius:99px;
-  font-size:13px;font-weight:600;border:2px solid transparent;
+  font-size:13px;font-weight:600;border:2px solid var(--line);
   cursor:pointer;transition:all .15s;white-space:nowrap;
-  background:var(--card);color:var(--ink-2);border-color:var(--line)}
+  background:var(--card);color:var(--ink-2)}
 .person-chip.active{border-color:currentColor}
 .section-label{font-size:11px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;color:var(--ink-3);margin:16px 0 8px}
-/* day cards */
 .day-card{background:var(--card);border-radius:14px;
   box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
   margin-bottom:10px;overflow:hidden}
@@ -100,7 +101,6 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
   align-items:center;margin-top:4px;margin-bottom:16px}
 .week-summary .label{font-size:12px;opacity:.6}
 .week-summary .total{font-size:26px;font-weight:800}
-/* team view */
 .team-day-block{margin-bottom:14px}
 .team-day-title{font-size:13px;font-weight:700;color:#fff;
   background:var(--ink);border-radius:8px;padding:8px 13px;margin-bottom:6px}
@@ -114,7 +114,6 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
 .team-hrs{font-size:13px;font-weight:800;flex-shrink:0}
 .team-fixed-tag{font-size:9px;background:#EF4444;color:#fff;
   border-radius:4px;padding:1px 5px;font-weight:700}
-/* edit */
 .edit-locked{text-align:center;padding:40px 20px}
 .edit-locked h2{font-size:18px;font-weight:700;margin-bottom:8px}
 .edit-locked p{font-size:14px;color:var(--ink-2);margin-bottom:20px;line-height:1.5}
@@ -156,10 +155,8 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
 .info-box{background:var(--card);border-radius:14px;padding:16px;
   margin-bottom:12px;border-left:4px solid var(--accent);
   box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.info-box h3{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--accent)}
-.info-box p{font-size:13px;color:var(--ink-2);line-height:1.6;margin-bottom:6px}
-.info-box code{background:var(--surface);padding:2px 6px;border-radius:4px;
-  font-size:11px;color:var(--ink);word-break:break-all}
+.info-box h3{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--accent)}
+.info-box p{font-size:13px;color:var(--ink-2);line-height:1.6}
 .toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom) + 10px);
   left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--ink);color:#fff;padding:10px 20px;border-radius:99px;
@@ -173,11 +170,10 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
 <div class="topbar">
   <div>
     <h1>🧹 Rooster</h1>
-    <p>Schoonmaakteam</p>
+    <p id="topbar-sub">Schoonmaakteam</p>
   </div>
-  <div class="week-pill">
-    <button class="week-btn" onclick="setWeek(2)">Wk 2</button>
-    <button class="week-btn active" onclick="setWeek(3)">Wk 3</button>
+  <div class="week-pill" id="week-pill">
+    <!-- filled dynamically -->
   </div>
 </div>
 <div class="scroll" id="scroll-area">
@@ -203,7 +199,7 @@ html,body{height:100%;background:var(--surface);color:var(--ink);
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvAXvTG68cvPsrxhnqquUaDXhx9rqyWgKIaiEsrjsF-w8nnthkmA1EQThv2U69aYAoynzskxjNX9vJ/pub?gid=0&single=true&output=csv';
-const EDIT_PIN  = '1234'; // Soraya changes this
+const EDIT_PIN  = '1234';
 
 const PERSON_COLOR = {
   Julia:'#0EA5E9',merie:'#10B981',sylvia:'#8B5CF6',shayenn:'#F59E0B',
@@ -227,34 +223,29 @@ const LOC_ADDR = {
   'VAN PUTTEN APELD':'Apeldoorn',
   'SOLIDEZ':'Olympiaplein 26, Ede',
 };
-const WEEKS = {
-  2:['2026-06-22','2026-06-23','2026-06-24','2026-06-25','2026-06-26','2026-06-27'],
-  3:['2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03','2026-07-04']
-};
 const DAY_FULL  = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const DAY_SHORT = ['zo','ma','di','wo','do','vr','za'];
 const MONTH_NL  = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-let SHIFTS = [];
-let currentTab = 'my';
-let currentWeek = 3;
+let SHIFTS        = [];
+let allWeeks      = [];   // [{label, dates:[]}] — built from sheet data
+let currentWeekIdx = 0;
+let currentTab    = 'my';
 let selectedPerson = 'Julia';
-let editUnlocked = false;
-let allPersons = [];
+let allPersons    = [];
+let editUnlocked  = false;
 
-// ── CSV FETCH ─────────────────────────────────────────────────────────────
+// ── LOAD SHEET ────────────────────────────────────────────────────────────
 async function loadSheet() {
   try {
     const res = await fetch(SHEET_CSV + '&t=' + Date.now());
     const txt = await res.text();
     SHIFTS = parseCSV(txt);
     allPersons = [...new Set(SHIFTS.map(s => s.person))].sort();
-    // Auto-detect current week
-    const today = new Date().toISOString().slice(0,10);
-    if (WEEKS[2].includes(today)) currentWeek = 2;
-    document.querySelectorAll('.week-btn').forEach((b,i) =>
-      b.classList.toggle('active', [2,3][i] === currentWeek));
+    buildWeeks();
+    autoSelectCurrentWeek();
+    buildWeekPill();
     render();
   } catch(e) {
     document.getElementById('scroll-area').innerHTML =
@@ -266,7 +257,6 @@ function parseCSV(txt) {
   const lines = txt.trim().split('\n');
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
   return lines.slice(1).map(line => {
-    // handle commas inside quoted fields
     const cols = [];
     let cur = '', inQ = false;
     for (let ch of line) {
@@ -276,19 +266,78 @@ function parseCSV(txt) {
     }
     cols.push(cur.trim());
     const obj = {};
-    headers.forEach((h,i) => obj[h] = cols[i] || '');
+    headers.forEach((h,i) => obj[h] = (cols[i]||'').trim());
     return {
-      person:   obj.person   || '',
-      date:     obj.date     || '',
-      loc:      obj.location || '',
-      hrs:      parseFloat(obj.hours) || 0,
-      time:     obj.time     || '',
-      type:     obj.type     || 'flex',
+      person: obj.person   || '',
+      date:   obj.date     || '',
+      loc:    obj.location || '',
+      hrs:    parseFloat(obj.hours) || 0,
+      time:   obj.time     || '',
+      type:   obj.type     || 'flex',
     };
-  }).filter(s => s.person && s.date);
+  }).filter(s => s.person && s.date && s.date.match(/^\d{4}-\d{2}-\d{2}$/));
+}
+
+// Build weeks dynamically from all dates in the sheet
+// Group by ISO week (Mon–Sun)
+function buildWeeks() {
+  const allDates = [...new Set(SHIFTS.map(s => s.date))].sort();
+  const weekMap  = {};
+
+  allDates.forEach(d => {
+    const dt  = new Date(d + 'T00:00:00');
+    const day = dt.getDay(); // 0=Sun
+    // Monday of this week
+    const mon = new Date(dt);
+    mon.setDate(dt.getDate() - ((day + 6) % 7));
+    const key = mon.toISOString().slice(0, 10);
+    if (!weekMap[key]) weekMap[key] = [];
+    weekMap[key].push(d);
+  });
+
+  // Sort weeks, build full Mon–Sat for each
+  allWeeks = Object.entries(weekMap)
+    .sort(([a],[b]) => a.localeCompare(b))
+    .map(([monStr, dates], idx) => {
+      // fill full Mon–Sat (6 days)
+      const fullDates = [];
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(monStr + 'T00:00:00');
+        d.setDate(d.getDate() + i);
+        fullDates.push(d.toISOString().slice(0,10));
+      }
+      const mon = new Date(monStr + 'T00:00:00');
+      const sat = new Date(monStr + 'T00:00:00');
+      sat.setDate(sat.getDate() + 5);
+      const label = `Wk ${idx+1}`;
+      const range = `${mon.getDate()} ${MONTH_NL[mon.getMonth()]} – ${sat.getDate()} ${MONTH_NL[sat.getMonth()]}`;
+      return { label, range, monStr, dates: fullDates };
+    });
+}
+
+function autoSelectCurrentWeek() {
+  const today = new Date().toISOString().slice(0,10);
+  // find week that contains today, or the closest upcoming week
+  let found = allWeeks.findIndex(w => w.dates.includes(today));
+  if (found === -1) {
+    // find first future week
+    found = allWeeks.findIndex(w => w.monStr >= today.slice(0,10));
+  }
+  currentWeekIdx = found >= 0 ? found : allWeeks.length - 1;
+}
+
+function buildWeekPill() {
+  const pill = document.getElementById('week-pill');
+  pill.innerHTML = allWeeks.map((w, i) =>
+    `<button class="week-btn${i===currentWeekIdx?' active':''}"
+      onclick="setWeek(${i})">${w.label}</button>`
+  ).join('');
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
+function currentWeekDates() { return allWeeks[currentWeekIdx]?.dates || []; }
+function currentWeekRange()  { return allWeeks[currentWeekIdx]?.range || ''; }
+
 function fmtDate(d) {
   const dt = new Date(d + 'T00:00:00');
   return `${DAY_SHORT[dt.getDay()]} ${dt.getDate()} ${MONTH_NL[dt.getMonth()]}`;
@@ -297,8 +346,8 @@ function isToday(d) {
   const t = new Date(), dt = new Date(d + 'T00:00:00');
   return t.getFullYear()===dt.getFullYear()&&t.getMonth()===dt.getMonth()&&t.getDate()===dt.getDate();
 }
-function pColor(p) { return PERSON_COLOR[p] || PERSON_COLOR.default; }
-function pBg(p)    { return PERSON_BG[p]    || PERSON_BG.default; }
+function pColor(p) { return PERSON_COLOR[p]||PERSON_COLOR.default; }
+function pBg(p)    { return PERSON_BG[p]||PERSON_BG.default; }
 function dotColor(type) {
   return {fixed:'#EF4444',flex:'#3B82F6',key:'#8B5CF6',ask:'#F59E0B'}[type]||'#64748B';
 }
@@ -326,7 +375,7 @@ function render() {
 
 // ── MY VIEW ───────────────────────────────────────────────────────────────
 function renderMy() {
-  const dates = WEEKS[currentWeek];
+  const dates    = currentWeekDates();
   const myShifts = SHIFTS.filter(s => s.person === selectedPerson);
 
   let chips = '<div class="person-scroller">';
@@ -341,11 +390,11 @@ function renderMy() {
 
   let weekTotal = 0;
   let html = chips;
-  html += `<div class="section-label">Week ${currentWeek} · ${currentWeek===2?'22–27 jun':'29 jun – 4 jul'}</div>`;
+  html += `<div class="section-label">${allWeeks[currentWeekIdx]?.label} · ${currentWeekRange()}</div>`;
 
   dates.forEach(date => {
     const dayShifts = myShifts.filter(s => s.date === date);
-    const dayTotal  = dayShifts.reduce((s,x) => s + x.hrs, 0);
+    const dayTotal  = dayShifts.reduce((s,x) => s+x.hrs, 0);
     weekTotal += dayTotal;
     const today = isToday(date);
     const dt    = new Date(date + 'T00:00:00');
@@ -359,8 +408,8 @@ function renderMy() {
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           ${hasShifts
-            ? `<span class="day-hrs${today?' today-hrs':''}">${dayTotal}u</span>`
-            : `<span class="day-hrs zero">vrij</span>`}
+            ?`<span class="day-hrs${today?' today-hrs':''}">${dayTotal}u</span>`
+            :`<span class="day-hrs zero">vrij</span>`}
           <span class="chevron">▼</span>
         </div>
       </div>
@@ -370,8 +419,8 @@ function renderMy() {
       html += `<div class="off">🌿 Vrije dag</div>`;
     } else {
       dayShifts.forEach((s,i) => {
-        if (i > 0) html += `<div class="travel"><div class="travel-line"></div>🚲<div class="travel-line"></div></div>`;
-        const addr = LOC_ADDR[s.loc] || '';
+        if (i>0) html += `<div class="travel"><div class="travel-line"></div>🚲<div class="travel-line"></div></div>`;
+        const addr = LOC_ADDR[s.loc]||'';
         html += `<div class="shift">
           <div class="shift-dot" style="background:${dotColor(s.type)}"></div>
           <div class="shift-info">
@@ -388,7 +437,7 @@ function renderMy() {
   });
 
   html += `<div class="week-summary">
-    <div><div class="label">Week ${currentWeek} totaal</div></div>
+    <div><div class="label">${allWeeks[currentWeekIdx]?.label} totaal</div></div>
     <div class="total">${weekTotal}u</div>
   </div>`;
   return html;
@@ -396,8 +445,8 @@ function renderMy() {
 
 // ── TEAM VIEW ─────────────────────────────────────────────────────────────
 function renderTeam() {
-  const dates = WEEKS[currentWeek];
-  let html = `<div class="section-label">Heel team · Week ${currentWeek}</div>`;
+  const dates = currentWeekDates();
+  let html = `<div class="section-label">Heel team · ${currentWeekRange()}</div>`;
 
   dates.forEach(date => {
     const dayShifts = SHIFTS.filter(s => s.date === date);
@@ -415,8 +464,7 @@ function renderTeam() {
       <div class="team-day-title">${today?'📅 VANDAAG — ':''}${DAY_FULL[dt.getDay()]} ${dt.getDate()} ${MONTH_NL[dt.getMonth()]}</div>`;
 
     Object.entries(byPerson).sort().forEach(([person, shifts]) => {
-      const total    = shifts.reduce((s,x) => s + x.hrs, 0);
-      const hasFixed = shifts.some(s => s.type === 'fixed');
+      const total    = shifts.reduce((s,x) => s+x.hrs, 0);
       html += `<div class="team-row">
         <div class="team-name" style="color:${pColor(person)}">${person}</div>
         <div class="team-shifts">`;
@@ -451,31 +499,30 @@ function renderEdit() {
     </div>`;
   }
 
-  const dates = WEEKS[currentWeek];
+  const dates      = currentWeekDates();
   const weekShifts = SHIFTS.filter(s => dates.includes(s.date))
-    .sort((a,b) => a.date.localeCompare(b.date) || a.person.localeCompare(b.person));
+    .sort((a,b) => a.date.localeCompare(b.date)||a.person.localeCompare(b.person));
+  const allLocs    = [...new Set([...SHIFTS.map(s=>s.loc),...Object.keys(LOC_ADDR)])].sort();
 
-  const allLocs = [...new Set(SHIFTS.map(s => s.loc)), ...Object.keys(LOC_ADDR)]
-    .filter((v,i,a) => a.indexOf(v)===i).sort();
+  const shiftList = weekShifts.length
+    ? weekShifts.map(s => `
+        <div class="shift-edit-row">
+          <div class="shift-edit-info">
+            <div class="shift-edit-name" style="color:${pColor(s.person)}">${s.person} · ${fmtDate(s.date)}</div>
+            <div class="shift-edit-detail">${s.loc} · ${s.hrs}u · ${s.time}</div>
+          </div>
+          <button class="del-btn" onclick="deleteShift(${SHIFTS.indexOf(s)})">×</button>
+        </div>`).join('')
+    : '<p style="color:#94A3B8;font-size:13px">Geen diensten</p>';
 
-  let shiftList = weekShifts.map((s,i) => `
-    <div class="shift-edit-row">
-      <div class="shift-edit-info">
-        <div class="shift-edit-name" style="color:${pColor(s.person)}">${s.person} · ${fmtDate(s.date)}</div>
-        <div class="shift-edit-detail">${s.loc} · ${s.hrs}u · ${s.time}</div>
-      </div>
-      <button class="del-btn" onclick="deleteShift(${SHIFTS.indexOf(s)})">×</button>
-    </div>`).join('') || '<p style="color:#94A3B8;font-size:13px">Geen diensten</p>';
-
-  const personOpts = allPersons.map(p => `<option>${p}</option>`).join('');
-  const dateOpts   = dates.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
-  const locOpts    = allLocs.map(l => `<option>${l}</option>`).join('');
+  const personOpts = allPersons.map(p=>`<option>${p}</option>`).join('');
+  const dateOpts   = dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('');
+  const locOpts    = allLocs.map(l=>`<option>${l}</option>`).join('');
 
   return `
     <div class="info-box">
-      <h3>📊 Hoe werkt bewerken?</h3>
-      <p>Diensten toevoegen of verwijderen doe je hier. Maar voor <strong>permanente wijzigingen</strong> pas je het Google Sheet aan — dan ziet iedereen het na een refresh.</p>
-      <p>Sheet link: <code>docs.google.com/spreadsheets/d/1MFStgmt...</code></p>
+      <h3>📊 Permanente wijzigingen</h3>
+      <p>Pas het Google Sheet aan voor permanente updates. Iedereen ziet dit na een refresh van de app.</p>
     </div>
     <div class="form-section">
       <h3>➕ Dienst toevoegen</h3>
@@ -493,7 +540,7 @@ function renderEdit() {
       <button class="btn btn-primary" onclick="addShift()">Toevoegen</button>
     </div>
     <div class="form-section">
-      <h3>📋 Diensten Week ${currentWeek} (${weekShifts.length})</h3>
+      <h3>📋 Diensten ${allWeeks[currentWeekIdx]?.label} (${weekShifts.length})</h3>
       ${shiftList}
     </div>
     <button class="btn btn-danger" onclick="editUnlocked=false;render()">🔒 Uitloggen</button>`;
@@ -503,24 +550,23 @@ function renderEdit() {
 function showTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
   render();
   document.getElementById('scroll-area').scrollTop = 0;
 }
-function setWeek(w) {
-  currentWeek = w;
-  document.querySelectorAll('.week-btn').forEach((b,i) =>
-    b.classList.toggle('active', [2,3][i] === w));
+function setWeek(idx) {
+  currentWeekIdx = idx;
+  buildWeekPill();
   render();
 }
 function selectPerson(p) { selectedPerson = p; render(); }
 function movePIN(el, nextId) { if (el.value.length===1) document.getElementById(nextId)?.focus(); }
 function checkPIN() {
-  const pin = ['p1','p2','p3','p4'].map(id => document.getElementById(id)?.value||'').join('');
-  if (pin === EDIT_PIN) { editUnlocked = true; showToast('✅ Welkom Soraya!'); render(); }
-  else if (pin.length === 4) {
+  const pin = ['p1','p2','p3','p4'].map(id=>document.getElementById(id)?.value||'').join('');
+  if (pin===EDIT_PIN) { editUnlocked=true; showToast('✅ Welkom Soraya!'); render(); }
+  else if (pin.length===4) {
     showToast('❌ Verkeerde PIN');
-    ['p1','p2','p3','p4'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['p1','p2','p3','p4'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('p1')?.focus();
   }
 }
@@ -540,7 +586,7 @@ function deleteShift(idx) {
   const s = SHIFTS[idx];
   if (!s) return;
   if (!confirm(`Verwijder ${s.person} · ${s.loc} op ${fmtDate(s.date)}?`)) return;
-  SHIFTS.splice(idx, 1);
+  SHIFTS.splice(idx,1);
   showToast('🗑 Verwijderd');
   render();
 }
